@@ -1,7 +1,7 @@
-# from py2neo.ogm import GraphObject, Property, RelatedTo, RelatedFrom
-from core import *
-from galaxyuser import GalaxyUser
-from fasttree import FastTree
+    # from py2neo.ogm import GraphObject, Property, RelatedTo, RelatedFrom
+from .core import *
+from .galaxyuser import GalaxyUser
+from .fasttree import FastTree
 
 
 # class Phenotype(GraphObject):
@@ -19,10 +19,11 @@ class VariantSet(GraphObject):
     owner = Property()
     history_id = Property()
 
-    has_variant = RelatedTo("VariantSite", "HAS_VARIANT")
+    has_variant = RelatedFrom("VariantSite", "BELONGS_TO_VSET")
     has_call = RelatedTo("Call", "HAS_CALL")
     owned_by = RelatedFrom("GalaxyUser", "OWNS_SET")
     forms_tree = RelatedFrom("FastTree", "FROM_VARIANT_SET")
+    has_callsets = RelatedFrom("CallSet", "HAS_CALLS_IN")
 
     def __init__(self, name, owner, history_id=None):
         self.name = name
@@ -74,7 +75,7 @@ class CallSet(GraphObject):
     vset = Property()
     identifier = Property()
 
-    has_call = RelatedTo("Call", "HAS_CALL")
+    has_call = RelatedFrom("Call", "BELONGS_TO_CSET")
     has_calls_in = RelatedTo("VariantSet", "HAS_CALLS_IN")
 
     def __init__(self, name):
