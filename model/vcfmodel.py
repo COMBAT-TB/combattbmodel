@@ -1,8 +1,6 @@
     # from py2neo.ogm import GraphObject, Property, RelatedTo, RelatedFrom
 from .core import *
 from .galaxyuser import GalaxyUser
-from .fasttree import FastTree
-
 
 # class Phenotype(GraphObject):
 #     __primarykey__ = 'type'
@@ -102,3 +100,16 @@ class Call(GraphObject):
         self.impact = impact
         self.gene = gene
         self.pk = pk
+
+class FastTree(GraphObject):
+    __primarykey__ = 'name'
+    name = Property()
+    data = Property()
+    history_id = Property()
+
+    from_variant_set = RelatedTo("VariantSet", "FROM_VARIANT_SET")
+
+    def __init__(self, name, data, history_id):
+        self.name = name
+        self.data = data
+        self.history_id = history_id
