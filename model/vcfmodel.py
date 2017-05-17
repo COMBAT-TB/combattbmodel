@@ -1,4 +1,6 @@
 # from py2neo.ogm import GraphObject, Property, RelatedTo, RelatedFrom
+import uuid
+
 from core import *
 from galaxyuser import GalaxyUser
 
@@ -12,21 +14,27 @@ from galaxyuser import GalaxyUser
 # https://ga4gh-schemas.readthedocs.io/en/latest/api/variants.html
 # VariantSet = Phenotype
 # TODO: Dataset and ReferenceSet?
+REF_COL_ID = uuid.uuid3(uuid.NAMESPACE_DNS, 'www.internationalgenome.org')
+
+
 class VariantSet(GraphObject):
-    __primarykey__ = 'history_id'
+    __primarykey__ = 'col_id'
     name = Property()
     owner = Property()
     history_id = Property()
+    col_id = Property()
 
     has_variant = RelatedTo("VariantSite", "HAS_VARIANT")
     has_call = RelatedTo("Call", "HAS_CALL")
     owned_by = RelatedFrom("GalaxyUser", "OWNS_SET")
     forms_tree = RelatedFrom("FastTree", "FROM_VARIANT_SET")
+    has_callsets = RelatedFrom("CallSet", "HAS_CALLS_IN")
 
-    def __init__(self, name, owner, history_id=None):
+    def __init__(self, name, owner, history_id=None, col_id=REF_COL_ID):
         self.name = name
         self.owner = owner
         self.history_id = history_id
+        self.col_id = col_id
 
 
 # VariantSite = Variant
@@ -47,7 +55,6 @@ class VariantSite(GraphObject):
     gene_id = Property()
     known = Property()
     novel = Property()
-    impact = Property()
     pk = Property()
 
     occurs_in = RelatedTo("Gene", "OCCURS_IN")
@@ -56,14 +63,13 @@ class VariantSite(GraphObject):
     has_call = RelatedTo("Call", "HAS_CALL")
     belongs_to_vset = RelatedTo("VariantSet", "BELONGS_TO_VSET")
 
-    def __init__(self, chrom, pos, ref_allele, alt_allele, pk, impact, gene=None):
+    def __init__(self, chrom, pos, ref_allele, alt_allele, pk, gene=None):
         self.chrom = chrom
         self.pos = pos
         self.ref_allele = ref_allele
         self.alt_allele = alt_allele
         self.gene = gene
         self.pk = pk
-        self.impact = impact
 
 
 # CallSet = VCF file
@@ -73,7 +79,7 @@ class CallSet(GraphObject):
     vset = Property()
     identifier = Property()
 
-    has_call = RelatedTo("Call", "HAS_CALL")
+    has_call = RelatedFrom("Call", "BELONGS_TO_CSET")
     has_calls_in = RelatedTo("VariantSet", "HAS_CALLS_IN")
 
     def __init__(self, name):
@@ -90,14 +96,16 @@ class Call(GraphObject):
     gene = Property()
     pos = Property()
     pk = Property()
+    impact = Property()
 
     associated_with = RelatedTo("VariantSite", "ASSOC_WITH_VARIANT")
     belongs_to_cset = RelatedTo("CallSet", "BELONGS_TO_CSET")
 
-    def __init__(self, pos, ref_allele, alt_allele, pk, gene=None):
+    def __init__(self, pos, ref_allele, alt_allele, pk, impact, gene=None):
         self.pos = pos
         self.ref_allele = ref_allele
         self.alt_allele = alt_allele
+        self.impact = impact
         self.gene = gene
         self.pk = pk
 
