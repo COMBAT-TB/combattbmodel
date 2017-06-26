@@ -1,6 +1,4 @@
 from py2neo.ogm import GraphObject, Property, RelatedTo, RelatedFrom
-from .vcfmodel import *
-
 
 class FastTree(GraphObject):
     __primarykey__ = 'name'
