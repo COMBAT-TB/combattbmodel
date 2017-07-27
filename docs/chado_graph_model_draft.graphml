@@ -35,7 +35,7 @@
       <data key="d6">
         <y:ShapeNode>
           <y:Geometry height="80.0" width="80.0" x="1212.0" y="602.0"/>
-          <y:Fill color="#FF6600" transparent="false"/>
+          <y:Fill color="#00FFFF" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="17.96875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="70.890625" x="4.5546875" y="31.015625">FeatureLoc<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
@@ -362,7 +362,7 @@
       <data key="d6">
         <y:ShapeNode>
           <y:Geometry height="80.0" width="91.0" x="-189.39522546419096" y="65.58521220159147"/>
-          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:Fill color="#00FFFF" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="17.96875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="42.982421875" x="24.0087890625" y="31.015625">Contig<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
@@ -379,7 +379,7 @@
       <data key="d6">
         <y:ShapeNode>
           <y:Geometry height="80.0" width="91.0" x="-35.59151193633954" y="65.58521220159147"/>
-          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:Fill color="#00FFFF" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="17.96875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="83.95703125" x="3.521484375" y="31.015625">Chromosome<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
