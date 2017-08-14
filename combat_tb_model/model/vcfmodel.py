@@ -1,8 +1,5 @@
 # from py2neo.ogm import GraphObject, Property, RelatedTo, RelatedFrom
-from .core import *
-from .galaxyuser import GalaxyUser
-from .fasttree import FastTree
-
+from neomodel import StructuredNode, StringProperty, RelationshipTo, RelationshipFrom
 
 # class Phenotype(GraphObject):
 #     __primarykey__ = 'type'
@@ -13,90 +10,61 @@ from .fasttree import FastTree
 # https://ga4gh-schemas.readthedocs.io/en/latest/api/variants.html
 # VariantSet = Phenotype
 # TODO: Dataset and ReferenceSet?
-class VariantSet(GraphObject):
-    __primarykey__ = 'history_id'
-    name = Property()
-    owner = Property()
-    history_id = Property()
+class VariantSet(StructuredNode):
+    name = StringProperty(unique_index=True, required=True)
+    owner = StringProperty()
+    history_id = StringProperty(index=True)
 
-    has_variant = RelatedTo("VariantSite", "HAS_VARIANT")
-    has_call = RelatedTo("Call", "HAS_CALL")
-    owned_by = RelatedFrom("GalaxyUser", "OWNS_SET")
-    forms_tree = RelatedFrom("FastTree", "FROM_VARIANT_SET")
-
-    def __init__(self, name, owner, history_id=None):
-        self.name = name
-        self.owner = owner
-        self.history_id = history_id
+    has_variant = RelationshipTo("VariantSite", "HAS_VARIANT")
+    has_call = RelationshipTo("Call", "HAS_CALL")
+    owned_by = RelationshipTo("combat_tb_model.model.galaxyuser.GalaxyUser", "OWNS_SET")
+    forms_tree = RelationshipTo("combat_tb__model.model.fasttree.FastTree", "FROM_VARIANT_SET")
 
 
 # VariantSite = Variant
-class VariantSite(GraphObject):
+class VariantSite(StructuredNode):
     # NOTE: relies on FeatureLoc from core.py
     # make __primarykey__ = VariantSet.name+POS
-    __primarykey__ = 'pk'
 
-    pos = Property()
-    feature_id = Property()
-    biotype = Property()
-    chrom = Property()
-    ref_allele = Property()
-    alt_allele = Property()
-    quality = Property()
-    depth = Property()
-    gene = Property()
-    gene_id = Property()
-    known = Property()
-    novel = Property()
-    pk = Property()
+    pos =StringProperty()
+    feature_id = StringProperty()
+    biotype = StringProperty()
+    chrom = StringProperty()
+    ref_allele = StringProperty()
+    alt_allele = StringProperty()
+    quality = StringProperty()
+    depth = StringProperty()
+    gene = StringProperty()
+    gene_id = StringProperty()
+    known = StringProperty()
+    novel = StringProperty()
+    pk = StringProperty(unique_index=True)
 
-    occurs_in = RelatedTo("Gene", "OCCURS_IN")
-    location = RelatedTo("FeatureLoc", "LOCATED_AT")
+    occurs_in = RelationshipTo("combat_tb_model.model.core.Gene", "OCCURS_IN")
+    location = RelationshipTo("Location", "LOCATED_AT")
 
-    has_call = RelatedTo("Call", "HAS_CALL")
-    belongs_to_vset = RelatedTo("VariantSet", "BELONGS_TO_VSET")
-
-    def __init__(self, chrom, pos, ref_allele, alt_allele, pk, gene=None):
-        self.chrom = chrom
-        self.pos = pos
-        self.ref_allele = ref_allele
-        self.alt_allele = alt_allele
-        self.gene = gene
-        self.pk = pk
+    has_call = RelationshipTo("Call", "HAS_CALL")
+    belongs_to_vset = RelationshipTo("VariantSet", "BELONGS_TO_VSET")
 
 # CallSet = VCF file
-class CallSet(GraphObject):
-    __primarykey__ = 'name'
-    name = Property()
-    vset = Property()
-    identifier = Property()
+class CallSet(StructuredNode):
+    name = StringProperty(unique_index=True)
+    vset = StringProperty()
+    identifier = StringProperty()
 
-    has_call = RelatedTo("Call", "HAS_CALL")
-    has_calls_in = RelatedTo("VariantSet", "HAS_CALLS_IN")
+    has_call = RelationshipTo("Call", "HAS_CALL")
+    has_calls_in = RelationshipTo("VariantSet", "HAS_CALLS_IN")
 
-    def __init__(self, name):
-        self.name = name
-        # self.vset = vset
-
-
-class Call(GraphObject):
+class Call(StructuredNode):
     # make __primarykey__ = CallSet.name+VariantSet.name+pos
-    __primarykey__ = 'pk'
-    genotype = Property()
-    ref_allele = Property()
-    alt_allele = Property()
-    gene = Property()
-    pos = Property()
-    pk = Property()
-    impact = Property()
+    genotype = StringProperty()
+    ref_allele = StringProperty()
+    alt_allele = StringProperty()
+    gene = StringProperty()
+    pos = StringProperty()
+    pk = StringProperty()
+    impact = StringProperty()
 
-    associated_with = RelatedTo("VariantSite", "ASSOC_WITH_VARIANT")
-    belongs_to_cset = RelatedTo("CallSet", "BELONGS_TO_CSET")
+    associated_with = RelationshipTo("VariantSite", "ASSOC_WITH_VARIANT")
+    belongs_to_cset = RelationshipTo("CallSet", "BELONGS_TO_CSET")
 
-    def __init__(self, pos, ref_allele, alt_allele, pk, impact, gene=None):
-        self.pos = pos
-        self.ref_allele = ref_allele
-        self.alt_allele = alt_allele
-        self.gene = gene
-        self.pk = pk
-        self.impact = impact

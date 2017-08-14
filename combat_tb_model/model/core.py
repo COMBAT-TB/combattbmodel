@@ -1,232 +1,202 @@
-from py2neo.ogm import GraphObject, Property, RelatedTo, RelatedFrom
+#!/usr/bin/env python
+
+from neomodel import StructuredNode, RelationshipTo, RelationshipFrom
+from neomodel import One, ZeroOrMore, OneOrMore
+from neomodel import StringProperty, IntegerProperty, BooleanProperty, DateTimeProperty, FloatProperty
+
+# class LocationRel(StructuredRel):
+#     # locations are zero-based, following Chado
+#     # schema for fmin/fmax, see:
+#     # http://gmod.org/wiki/Chado_Sequence_Module#Feature_Locations
+#     start = IntegerProperty()
+#     end = IntegerProperty()
+#     strand = StringProperty(choices=(('1', '+'), ('-1', '-')))
+
+class ExternallyDescribable(StructuredNode):
+    __abstract_node__ = True
+    dbxref = RelationshipTo('DbXref', 'XREF', cardinality=ZeroOrMore)
+
+class Organism(ExternallyDescribable):
+    abbreviation = StringProperty()
+    genus = StringProperty(required=True)
+    species = StringProperty(required=True)
+    strain = StringProperty()
+    common_name = StringProperty(required=True)
+    comment = StringProperty()
 
 
-class Organism(GraphObject):
-    __primarykey__ = 'genus'
+class Publication(StructuredNode):
+    pmid = StringProperty(required=True, unique_index=True)
+    title = StringProperty(required=True)
+    volumetitle = StringProperty()
+    volume = StringProperty()
+    series_name = StringProperty()
+    issue = StringProperty()
+    year = IntegerProperty(required=True)
+    pages = StringProperty()
+    miniref = StringProperty()
+    uniquename = StringProperty()
+    is_obsolete = BooleanProperty(default=False)
+    publisher = StringProperty()
+    pubplace = StringProperty()
 
-    abbreviation = Property()
-    genus = Property()
-    species = Property()
-    common_name = Property()
-    comment = Property()
+    author = RelationshipFrom('Author', 'WROTE', cardinality=OneOrMore)
 
-    dbxref = RelatedTo("DbXref", "XREF")
+class Author(StructuredNode):
+    editor = StringProperty()
+    surname = StringProperty(required=True, index=True)
+    givennames = StringProperty(required=True, index=True)
+    suffix = StringProperty()
+    rank = IntegerProperty()
 
-    def __init__(self, abbreviation=None, genus=None, species=None, common_name=None, comment=None):
-        self.abbreviation = abbreviation
-        self.genus = genus
-        self.species = species
-        self.common_name = common_name
-        self.comment = comment
-
-
-class Feature(GraphObject):
-    __primarykey__ = 'uniquename'
-
-    name = Property()
-    uniquename = Property()
-    residues = Property()
-    seqlen = Property()
-    md5checksum = Property()
-    parent = Property()  # To build related_to rel.
-    is_analysis = Property()
-    is_obsolete = Property()
-    timeaccessioned = Property()
-    timelastmodfied = Property()
-    ontology_id = Property()
-
-    belongs_to = RelatedTo("Organism", "BELONGS_TO")
-    location = RelatedTo("FeatureLoc", "LOCATED_AT")
-    related_to = RelatedTo("Feature", "RELATED_TO")
-    published_in = RelatedTo("Publication", "PUBLISHED_IN")
-    dbxref = RelatedTo("DbXref", "XREF")
-    cvterm = RelatedTo("CvTerm", "ASSOC_WITH")
-    orthologous_to = RelatedTo("Feature", "ORTHOLOGOUS_TO")
+    wrote = RelationshipTo('Publication', 'WROTE', cardinality=ZeroOrMore)
 
 
-class FeatureSet(GraphObject):
-    # I'm not sure if this should be in core - pvh
-    __primarykey__ = 'name'
+class DbXref(StructuredNode):
+    accession = StringProperty(required=True, index=True)
+    version = StringProperty()
+    db = StringProperty(required=True, unique_index=True)
+    description = StringProperty()
+    uri = StringProperty()
 
-    name = Property()
-    description = Property()
-    contains = RelatedTo("Feature", "CONTAINS")
+    refers_to = RelationshipFrom('ExternallyDefined', 'XREF', cardinality=OneOrMore)
+
+class Location(StructuredNode):
+    # the feature location model is inspired by
+    # Chado: http://gmod.org/wiki/Chado_Sequence_Module#Feature_Locations
+
+    location_key = StringProperty(required=True, unique_index=True)
+    start = IntegerProperty(required=True)
+    end = IntegerProperty(required=True)
+    strand = StringProperty(choices=(('1','+'), ('-1', '-')), required=True)
+
+    feature = RelationshipTo('Feature', 'ON', cardinality=One)
+
+class Feature(ExternallyDescribable):
+    # __abstract_node__ = True
+
+    name = StringProperty()
+    uniquename = StringProperty(required=True, unique_index=True)
+    residues = StringProperty()
+    seqlen = IntegerProperty()
+    md5checksum = StringProperty()
+    is_analysis = BooleanProperty(default=False)
+    is_obsolete = BooleanProperty(default=False)
+    timeaccessioned = DateTimeProperty()
+    timelastmodified = DateTimeProperty()
+    ontology_id = StringProperty()  # WHAT IS THIS?
+
+    location = RelationshipTo('Location', 'LOCATED_AT', cardinality=ZeroOrMore)
+    belongs_to = RelationshipTo('Organism', 'BELONGS_TO', cardinality=One)
+    published_in = RelationshipTo('Publication', 'PUBLISHED_IN')
+    go_terms = RelationshipTo('GoTerm', 'ASSOC_WITH', cardinality=ZeroOrMore)
+    orthologous_to = RelationshipTo('Feature', 'ORTHOLOGOUS_TO')
 
 
-class Gene(Feature):
-    so_id = "SO:0000704"
+class RepeatRegion(Feature):
+    so_id = 'SO:0000657'
+    description = StringProperty()
 
-    biotype = Property()
-    description = Property()
-    parts = RelatedFrom("Transcript", "PART_OF")
-    is_a = RelatedTo("Feature", "IS_A")
+class Transcribed(Feature):
+    __abstract_node__ = True
+
+class Trna(Transcribed):
+    so_id = "SO:0000253"
+
+class NCrna(Transcribed):
+    so_id = "SO:0000655"
 
 
-class PseudoGene(Feature):
+class Rrna(Transcribed):
+    so_id = "SO:0000252"
+
+class PseudoGene(Transcribed):
     so_id = "SO:0000336"
 
-    biotype = Property()
-    description = Property()
-    is_a = RelatedTo("Feature", "IS_A")
+    biotype = StringProperty(choices=(('pseudogene', 'pseudogene'),), default='pseudogene')
+    description = StringProperty()
 
+class Gene(Transcribed):
+    so_id = "SO:0000704"
+
+    biotype = StringProperty(choices=(('protein_coding', 'protein_coding'),), default='protein_coding')
+    description = StringProperty()
+    # TODO: transcripts or parts ??
+    transcripts = RelationshipFrom('Transcript', 'PART_OF', cardinality=ZeroOrMore)
 
 class Transcript(Feature):
     so_id = "SO:0000673"
 
-    biotype = Property()
-    is_a = RelatedTo("Feature", "IS_A")
-    part_of = RelatedTo("Gene", "PART_OF")
-
-
-class TRna(Feature):
-    so_id = "SO:0000253"
-
-
-class NCRna(Feature):
-    so_id = "SO:0000655"
-
-
-class RRna(Feature):
-    so_id = "SO:0000252"
-
+    # NOTE:
+    # In Ensembl GFF3 biotype is inherited from the parent feature, which can be
+    # (at least?) protein_coding, ncRNA or tRNA. In the current model we are only
+    # storing transcripts for genes.
+    biotype = StringProperty(required=True, choices=(
+            ('protein_coding', 'protein_coding'),
+            ('ncRNA', 'ncRNA'),
+            ('tRNA', 'tRNA'),
+            ('rRNA', 'rRNA'),
+            ('pseudogene', 'pseudogene')))
+    part_of = RelationshipTo('Transcribed', 'PART_OF')
+    # TODO: exons or parts ??
+    exons = RelationshipFrom('Exon', 'PART_OF', cardinality=ZeroOrMore)
 
 class Exon(Feature):
     so_id = "SO:0000147"
 
-    is_a = RelatedTo("Feature", "IS_A")
-    part_of = RelatedTo("Transcript", "PART_OF")
-
+    part_of = RelationshipTo('Transcript', 'PART_OF', cardinality=One)
 
 class CDS(Feature):
     so_id = "SO:0000316"
 
-    is_a = RelatedTo("Feature", "IS_A")
-    part_of = RelatedTo("Transcript", "PART_OF")
-    polypeptide = RelatedFrom('Polypeptide', "DERIVES_FROM")
+    part_of = RelationshipTo('Transcript', 'PART_OF', cardinality=One)
+    protein = RelationshipFrom('Protein', 'DERIVES_FROM', cardinality=ZeroOrMore)
 
+class Protein(Feature):
+    so_id = "SO:0000104"
+
+    family = StringProperty()
+    function = StringProperty()
+    # NOTE: proteins can have multiple domains across their length, consider
+    # replacing this with a protein domain feature that is located on the
+    # protein
+    domain = StringProperty()
+    three_d = StringProperty()
+    mass = FloatProperty()
+
+    derives_from = RelationshipTo('CDS', 'DERIVES_FROM', cardinality=One)
+    interacts_with = RelationshipTo('Protein', 'INTERACTS_WITH', cardinality=ZeroOrMore)
+    interpro_terms = RelationshipTo('InterProTerm', 'ASSOC_WITH', cardinality=ZeroOrMore)
 
 class Chromosome(Feature):
     so_id = "SO:0000340"
 
-    is_a = RelatedTo("Feature", "IS_A")
+    features = RelationshipFrom('Feature', 'LOCATED_ON')
 
+class Contig(Feature):
+    so_id = "SO:0000149"
 
-class Polypeptide(Feature):
-    # more commonly known as a Protein - we should call it that - pvh
-    so_id = "SO:0000104"
+    features = RelationshipFrom('Feature', 'LOCATED_ON')
 
-    family = Property()
-    function = Property()
-    pdb_id = Property()
-    domain = Property()
-    three_d = Property()
-    mass = Property()
+class InterProTerm(StructuredNode):
+    name = StringProperty(unique_index=True, required=True)
+    definition = StringProperty()
+    is_obsolete = BooleanProperty(default=False)
+    uri = StringProperty()
 
-    derives_from = RelatedTo("CDS", "DERIVES_FROM")
-    interacts_with = RelatedTo("Polypeptide", "INTERACTS_WITH")
+    proteins = RelationshipFrom('Protein', 'ASSOC_WITH', cardinality=OneOrMore)
 
+class GoTerm(StructuredNode):
+    name = StringProperty(unique_index=True, required=True)
+    definition = StringProperty()
+    is_obsolete = BooleanProperty(default=False)
+    namespace = StringProperty(choices=(
+            ('biological_process', 'biological_process'),
+            ('cellular_component', 'cellular_component'),
+            ('molecular_function', 'molecular_function')))
+    uri = StringProperty()
 
-class FeatureLoc(GraphObject):
-    __primarykey__ = 'srcfeature_id'  # used feature.uniquename
+    is_a = RelationshipTo('GoTerm', 'IS_A')
+    part_of = RelationshipTo('GoTerm', 'PART_OF')
+    feature = RelationshipFrom('Feature', 'ASSOC_WITH', cardinality=OneOrMore)
 
-    srcfeature_id = Property()
-    fmin = Property()
-    is_fmin_partial = Property()
-    fmax = Property()
-    is_fmax_partial = Property()
-    strand = Property()
-    phase = Property()
-    residue_info = Property()
-    locgroup = Property()
-    rank = Property()
-
-    feature = RelatedFrom("Feature", "ON")
-    published_in = RelatedTo("Publication", "PUBLISHED_IN")
-
-    def __init__(self, srcfeature_id, fmin=None, is_fmin_partial=None, fmax=None, is_fmax_partial=None, strand=None,
-                 phase=None, residue_info=None, locgroup=None,
-                 rank=None):
-        self.srcfeature_id = srcfeature_id
-        self.fmin = fmin
-        self.is_fmin_partial = is_fmin_partial
-        self.fmax = fmax
-        self.is_fmax_partial = is_fmax_partial
-        self.strand = strand
-        self.phase = phase
-        self.residue_info = residue_info
-        self.locgroup = locgroup
-        self.rank = rank
-        if self.fmin > self.fmax:
-            raise ValueError("fmin cannot be greater than fmax: {} > {}.".format(self.fmin, self.fmax))
-
-
-class Publication(GraphObject):
-    __primarykey__ = 'pmid'
-
-    pmid = Property()
-    title = Property()
-    volumetitle = Property()
-    volume = Property()
-    series_name = Property()
-    issue = Property()
-    year = Property()
-    pages = Property()
-    miniref = Property()
-    uniquename = Property()
-    is_obsolete = Property()
-    publisher = Property()
-    pubplace = Property()
-
-    author = RelatedFrom("Author", "WROTE")
-
-
-class Author(GraphObject):
-    __primarykey__ = 'givennames'
-
-    editor = Property()
-    surname = Property()
-    givennames = Property()
-    suffix = Property()
-    rank = Property()
-
-    wrote = RelatedTo("Publication", "WROTE")
-
-    def __init__(self, editor=None, surname=None, givennames=None, suffix=None):
-        self.editor = editor
-        self.surname = surname
-        self.givennames = givennames
-        self.suffix = suffix
-
-
-class CvTerm(GraphObject):
-    __primarykey__ = 'name'
-
-    name = Property()
-    definition = Property()
-    is_obsolete = Property()
-    namespace = Property()
-
-    dbxref = RelatedTo("DbXref", "XREF")
-    is_a = RelatedTo("CvTerm", "IS_A")
-    part_of = RelatedTo("CvTerm", "PART_OF")
-    feature = RelatedFrom("Feature", "ASSOC_WITH")
-
-    def __init__(self, name=None, definition=None, is_obsolete=None):
-        self.name = name
-        self.definition = definition
-        self.is_obsolete = is_obsolete
-
-
-class DbXref(GraphObject):
-    __primarykey__ = 'accession'
-
-    accession = Property()
-    version = Property()
-    db = Property()
-    description = Property()
-
-    def __init__(self, db, accession, version, description=None):
-        self.accession = accession
-        self.version = version
-        self.db = db
-        self.description = description
