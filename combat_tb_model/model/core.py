@@ -181,8 +181,6 @@ class Contig(Feature):
 class InterProTerm(StructuredNode):
     name = StringProperty(unique_index=True, required=True)
     definition = StringProperty()
-    is_obsolete = BooleanProperty(default=False)
-    uri = StringProperty()
 
     proteins = RelationshipFrom('Protein', 'ASSOC_WITH', cardinality=OneOrMore)
 
@@ -194,9 +192,25 @@ class GoTerm(StructuredNode):
             ('biological_process', 'biological_process'),
             ('cellular_component', 'cellular_component'),
             ('molecular_function', 'molecular_function')))
-    uri = StringProperty()
 
     is_a = RelationshipTo('GoTerm', 'IS_A')
     part_of = RelationshipTo('GoTerm', 'PART_OF')
     feature = RelationshipFrom('Feature', 'ASSOC_WITH', cardinality=OneOrMore)
 
+class Pathway(StructuredNode):
+    """
+    Pathway
+    """
+    __primarykey__ = 'accession'
+
+    accession = StringProperty(unique_index=True, required=True)
+    source = StringProperty(required=True, index=True, choices=(('kegg', 'kegg'), ('reactome', 'reactome')))
+    _type = StringProperty()
+    species = StringProperty()
+    _class = StringProperty()
+    name = StringProperty()
+    compartment = StringProperty()
+    # Description
+    summation = StringProperty()
+
+    protein = RelationshipFrom("Protein", "INVOLVED_IN", cardinality=OneOrMore)
