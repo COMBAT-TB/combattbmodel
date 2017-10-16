@@ -1,21 +1,12 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
-    name='vcf2neo',
-    version='0.0.6',
-    description='Parses VCF file and builds a graph database.',
-    keywords='neo4j,and vcf',
-    py_modules=['vcf2neo'],
-    packages=find_packages(),
-    include_package_data=True,
+    name='combat_tb_model',
+    version='0.0.3',
+    description='COMBAT-TB Graph Model,a Chado-derived graph model for genome annotation.',
+    keywords='neo4j',
+    packages=['combat_tb_model', 'combat_tb_model.model'],
     install_requires=[
-        'click',
-        'bioservices',
-        'py2neo',
-        'tqdm',
-        'PyVCF',
-    ],
-    entry_points={
-        'console_scripts': ['vcf2neo=vcf2neo.cli:cli']
-    },
+        'py2neo'
+    ]
 )
