@@ -5,7 +5,7 @@ class Organism(GraphObject):
     """
     Organism
     """
-    __primarykey__ = 'genus'
+    __primarykey__ = 'strain'
 
     abbreviation = Property()
     strain = Property()
@@ -71,6 +71,8 @@ class Gene(Feature):
 
     part_of = RelatedFrom("Transcript", "PART_OF")
     orthologous_to = RelatedTo("Gene", "ORTHOLOGOUS_TO")
+    orthologous_to_ = RelatedFrom("Gene", "ORTHOLOGOUS_TO")
+
     encodes = RelatedTo("Protein", "ENCODES")
 
     def __init__(self, so_id=_so_id):
@@ -114,6 +116,9 @@ class TRna(Feature):
     """
     _so_id = "SO:0000253"
     so_id = Property()
+    biotype = Property()
+
+    part_of = RelatedTo("Transcript", "PART_OF")
 
     def __init__(self, so_id=_so_id):
         self.so_id = so_id
@@ -125,6 +130,9 @@ class NCRna(Feature):
     """
     _so_id = "SO:0000655"
     so_id = Property()
+    biotype = Property()
+
+    part_of = RelatedTo("Transcript", "PART_OF")
 
     def __init__(self, so_id=_so_id):
         self.so_id = so_id
@@ -136,6 +144,9 @@ class RRna(Feature):
     """
     _so_id = "SO:0000252"
     so_id = Property()
+    biotype = Property()
+
+    part_of = RelatedTo("Transcript", "PART_OF")
 
     def __init__(self, so_id=_so_id):
         self.so_id = so_id
@@ -305,16 +316,20 @@ class GOTerm(GraphObject):
     namespace = Property()
 
     is_a = RelatedTo("GOTerm", "IS_A")
+    part_of = RelatedTo("GOTerm", "PART_OF")
+    regulates = RelatedTo("GOTerm", "REGULATES")
+    capable_of = RelatedTo("GOTerm", "CAPABLE_OF")
     protein = RelatedFrom("Protein", "ASSOCIATED_WITH")
 
     # part_of = RelatedTo("GOTerm", "PART_OF")
     # feature = RelatedFrom("Feature", "ASSOC_WITH")
 
-    def __init__(self, accession, name=None, definition=None, is_obsolete=None):
+    def __init__(self, accession, name=None, definition=None, is_obsolete=None, ontology=None):
         self.accession = accession
         self.name = name
         self.definition = definition
         self.is_obsolete = is_obsolete
+        self.ontology = ontology
 
 
 class InterProTerm(GraphObject):
