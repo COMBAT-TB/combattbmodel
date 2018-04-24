@@ -42,6 +42,7 @@ class Feature(GraphObject):
     timeaccessioned = Property()
     timelastmodfied = Property()
     ontology_id = Property()
+    category = Property()
 
     belongs_to = RelatedTo("Organism", "BELONGS_TO")
     location = RelatedTo("Location", "LOCATED_AT")
@@ -89,6 +90,8 @@ class PseudoGene(Feature):
     description = Property()
 
     part_of = RelatedFrom("Transcript", "PART_OF")
+    # Rv0277A encodes
+    encodes = RelatedTo("Protein", "ENCODES")
 
     def __init__(self, so_id=_so_id):
         self.so_id = so_id
