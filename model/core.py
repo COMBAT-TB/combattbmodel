@@ -51,14 +51,49 @@ class Feature(GraphObject):
     published_in = RelatedTo("Publication", "PUBLISHED_IN")
     dbxref = RelatedTo("DbXref", "XREF")
 
+    @staticmethod
+    def _reverse_complement(dna):
+        uc_mapping = {'A': 'T', 'C': 'G', 'T': 'A', 'G': 'C'}
+        mapping = {}
+        for base in uc_mapping:
+            mapping[base] = uc_mapping[base]
+            mapping[base.lower()] = uc_mapping[base].lower()
+        revcomp = ''
+        for base in dna[::-1]:
+            revcomp += mapping.get(base, base)
+        return revcomp
 
-# class FeatureSet(GraphObject):
-#     # I'm not sure if this should be in core - pvh
-#     __primarykey__ = 'name'
+    def get_residues(self, upstream_offset=0, downstream_offset=0):
+        if not self.residues:
+            try:
+                chromosome = next(iter(self.located_on))
+                residues = chromosome.residues
+            except StopIteration:
+                return ''  # we have no chromosome
+        else:
+            residues = self.residues
 
-#     name = Property()
-#     description = Property()
-#     contains = RelatedTo("Feature", "CONTAINS")
+        try:
+            my_location = next(iter(self.location))
+        except StopIteration:
+            # I have no location, thus I am the top level feature, thus return all my residues
+            return residues
+        else:
+            if my_location.strand == 1:  # TODO: confirm that locations are encoded 1 / -1
+                start = my_location.fmin - upstream_offset
+                start = 0 if start < 0 else start
+                end = my_location.fmax + downstream_offset
+                end = len(residues) + 1 if end > len(residues) else end
+                return residues[start:end]
+            else:
+                start = my_location.fmin - downstream_offset
+                start = 0 if start < 0 else start
+                end = my_location.fmax + upstream_offset
+                end = len(residues) + 1 if end > len(residues) else end
+                return Feature._reverse_complement(residues[start:end])
+
+        # >>> gene = Gene.select(graph, 'Rv0010c').first()
+        # >>> gene.get_residues()
 
 
 class Gene(Feature):
@@ -73,8 +108,29 @@ class Gene(Feature):
     part_of = RelatedFrom("Transcript", "PART_OF")
     orthologous_to = RelatedTo("Gene", "ORTHOLOGOUS_TO")
     orthologous_to_ = RelatedFrom("Gene", "ORTHOLOGOUS_TO")
+    co_regulated = RelatedFrom("Gene", "CO_REGULATED")
+    member_of = RelatedFrom("Operon", "MEMBER_OF")
 
     encodes = RelatedTo("Protein", "ENCODES")
+
+    def __init__(self, so_id=_so_id):
+        self.so_id = so_id
+
+
+class Operon(Feature):
+    """
+    Operon
+    """
+    _so_id = "SO:0000178"
+    so_id = Property()
+    description = Property()
+    start = Property()
+    end = Property()
+    coverage = Property()
+    experimentally_validated = Property()
+
+    gene = RelatedTo("Gene", "MEMBER_OF")
+    operon = RelatedFrom("Gene", "CO_REGULATED")
 
     def __init__(self, so_id=_so_id):
         self.so_id = so_id
@@ -363,6 +419,7 @@ class Drug(GraphObject):
 
     accession = Property()
     name = Property()
+    abbrev = Property()
     synonyms = Property()
     definition = Property()
     # attr. from tbdtdb
