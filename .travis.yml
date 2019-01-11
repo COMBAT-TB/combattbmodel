@@ -4,19 +4,10 @@ dist: trusty
 sudo: required
 
 language: python
-cache:
-   directories:
-     - $HOME/.cache/pip
 python:
   - "2.7"
   - "3.5"
   - "3.6"
-
-services:
-  - neo4j
-
-before_script:
-  - sleep 30
 
 # command to install dependencies
 install:

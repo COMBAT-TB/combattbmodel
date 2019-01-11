@@ -1,6 +1,6 @@
-import combat_tb_model
+import combattbmodel
 
 
 def test_package_name():
-    name = combat_tb_model.name
-    assert name == 'combat_tb_model'
+    name = combattbmodel.name
+    assert name == 'combattbmodel'
