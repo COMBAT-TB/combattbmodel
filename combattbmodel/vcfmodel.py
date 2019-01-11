@@ -2,7 +2,7 @@ import uuid
 
 from py2neo.ogm import GraphObject, Property, RelatedFrom, RelatedTo
 
-from combattbmodel.model.core import Drug, Gene, Location, RRna
+from combattbmodel.core import Drug, Gene, Location, RRna
 
 # https://ga4gh-schemas.readthedocs.io/en/latest/api/variants.html
 
