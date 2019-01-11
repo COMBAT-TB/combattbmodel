@@ -16,7 +16,8 @@ class Organism(GraphObject):
 
     dbxref = RelatedTo("DbXref", "XREF")
 
-    def __init__(self, abbreviation=None, strain=None, genus=None, species=None, common_name=None, comment=None):
+    def __init__(self, abbreviation=None, strain=None, genus=None,
+                 species=None, common_name=None, comment=None):
         self.abbreviation = abbreviation
         self.strain = strain
         self.genus = genus
@@ -76,10 +77,12 @@ class Feature(GraphObject):
         try:
             my_location = next(iter(self.location))
         except StopIteration:
-            # I have no location, thus I am the top level feature, thus return all my residues
+            # I have no location, thus I am the top level feature,
+            # thus return all my residues
             return residues
         else:
-            if my_location.strand == 1:  # TODO: confirm that locations are encoded 1 / -1
+            # TODO: confirm that locations are encoded 1 / -1
+            if my_location.strand == 1:
                 start = my_location.fmin - upstream_offset
                 start = 0 if start < 0 else start
                 end = my_location.fmax + downstream_offset
@@ -119,7 +122,7 @@ class Gene(Feature):
 
 class Operon(Feature):
     """
-    Operon
+    Gene is_a Feature
     """
     _so_id = "SO:0000178"
     so_id = Property()
@@ -153,6 +156,22 @@ class PseudoGene(Feature):
         self.so_id = so_id
 
 
+class MRna(Feature):
+    """
+    mRNA is_a Feature
+    """
+    _so_id = "SO:0000234"
+    so_id = Property()
+    biotype = Property()
+
+    part_of_g = RelatedTo("Gene", "PART_OF")
+    part_of_pg = RelatedTo("PseudoGene", "PART_OF")
+    part_of_cds = RelatedFrom("CDS", "PART_OF")
+
+    def __init__(self, so_id=_so_id):
+        self.so_id = so_id
+
+
 class Transcript(Feature):
     """
     Transcript is_a Feature
@@ -171,13 +190,14 @@ class Transcript(Feature):
 
 class TRna(Feature):
     """
-    TRna is_a Feature
+    tRNA is_a Feature
     """
     _so_id = "SO:0000253"
     so_id = Property()
     biotype = Property()
 
     part_of = RelatedTo("Transcript", "PART_OF")
+    regulates_gene = RelatedTo("Gene", "REGULATES")
 
     def __init__(self, so_id=_so_id):
         self.so_id = so_id
@@ -185,13 +205,14 @@ class TRna(Feature):
 
 class NCRna(Feature):
     """
-    NCRna is_a Feature
+    ncRNA is_a Feature
     """
     _so_id = "SO:0000655"
     so_id = Property()
     biotype = Property()
 
     part_of = RelatedTo("Transcript", "PART_OF")
+    regulates_gene = RelatedTo("Gene", "REGULATES")
 
     def __init__(self, so_id=_so_id):
         self.so_id = so_id
@@ -199,18 +220,20 @@ class NCRna(Feature):
 
 class RRna(Feature):
     """
-    RRna is_a Feature
+    rRNA is_a Feature
     """
     _so_id = "SO:0000252"
     so_id = Property()
     biotype = Property()
 
     part_of = RelatedTo("Transcript", "PART_OF")
+    regulates_gene = RelatedTo("Gene", "REGULATES")
 
     def __init__(self, so_id=_so_id):
         self.so_id = so_id
 
 
+# Prokaryotes don't really have exons or introns
 class Exon(Feature):
     """
     Exon is_a Feature
@@ -253,9 +276,9 @@ class Chromosome(Feature):
 
 class Protein(Feature):
     """
-    Protein is_a Feature
+    Protein (Polypeptide) is_a Feature
+
     """
-    # more commonly known as a Protein - we should call it that - pvh
     _so_id = "SO:0000104"
     so_id = Property()
     entry_name = Property()
@@ -299,9 +322,9 @@ class Location(GraphObject):
     # feature = RelatedFrom("Feature", "ON")
     # published_in = RelatedTo("Publication", "PUBLISHED_IN")
 
-    def __init__(self, pk, fmin=None, is_fmin_partial=None, fmax=None, is_fmax_partial=None, strand=None,
-                 phase=None, residue_info=None, locgroup=None,
-                 rank=None):
+    def __init__(self, pk, fmin=None, is_fmin_partial=None, fmax=None,
+                 is_fmax_partial=None, strand=None, phase=None,
+                 residue_info=None, locgroup=None, rank=None):
         self.pk = pk
         self.fmin = fmin
         self.is_fmin_partial = is_fmin_partial
@@ -312,9 +335,11 @@ class Location(GraphObject):
         self.residue_info = residue_info
         self.locgroup = locgroup
         self.rank = rank
+        # http://gmod.org/wiki/Chado_Sequence_Module#Feature_Locations
         if self.fmin > self.fmax:
             raise ValueError(
-                "fmin cannot be greater than fmax: {} > {}.".format(self.fmin, self.fmax))
+                "fmin cannot be greater than fmax: {} > {}."
+                .format(self.fmin, self.fmax))
 
 
 class Publication(GraphObject):
@@ -354,7 +379,8 @@ class Author(GraphObject):
 
     wrote = RelatedTo("Publication", "WROTE")
 
-    def __init__(self, editor=None, surname=None, givennames=None, suffix=None):
+    def __init__(self, editor=None, surname=None, givennames=None,
+                 suffix=None):
         self.editor = editor
         self.surname = surname
         self.givennames = givennames
@@ -375,7 +401,7 @@ class GOTerm(GraphObject):
     namespace = Property()
 
     is_a = RelatedTo("GOTerm", "IS_A")
-    part_of = RelatedTo("GOTerm", "PART_OF")
+    part_of_go = RelatedTo("GOTerm", "PART_OF")
     regulates = RelatedTo("GOTerm", "REGULATES")
     capable_of = RelatedTo("GOTerm", "CAPABLE_OF")
     protein = RelatedFrom("Protein", "ASSOCIATED_WITH")
@@ -383,7 +409,8 @@ class GOTerm(GraphObject):
     # part_of = RelatedTo("GOTerm", "PART_OF")
     # feature = RelatedFrom("Feature", "ASSOC_WITH")
 
-    def __init__(self, accession, name=None, definition=None, is_obsolete=None, ontology=None):
+    def __init__(self, accession, name=None, definition=None, is_obsolete=None,
+                 ontology=None):
         self.accession = accession
         self.name = name
         self.definition = definition

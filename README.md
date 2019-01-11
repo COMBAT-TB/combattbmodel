@@ -1,10 +1,12 @@
-# COMBAT_TB_MODEL
+# combattbmodel
 
-COMBAT-TB Graph Model, a [Chado](https://github.com/GMOD/Chado) -derived graph model.
+[![Build Status](https://travis-ci.org/COMBAT-TB/combattbmodel.svg?branch=master)](https://travis-ci.org/COMBAT-TB/combattbmodel)
+
+The COMBAT-TB graph model is a [Chado](https://github.com/GMOD/Chado)-derived graph model for genome annotation.
 
 ## Overview
 
-The COMBAT-TB Graph model is based on three Chado Modules:
+The graph model is based on the following Chado modules:
 
 * CV
 * Sequence
