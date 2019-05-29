@@ -71,6 +71,7 @@ class Variant(GraphObject):
     known = Property()
     promoter = Property()
     impact = Property()
+    effect = Property()
     drug = Property()
     sources = Property()
 
@@ -82,7 +83,7 @@ class Variant(GraphObject):
     belongs_to_cset = RelatedTo("CallSet", "HAS_VARIANT")
     resistant_to = RelatedTo("Drug", "RESISTANT_TO")
 
-    def __init__(self, chrom, pos, ref_allele, alt_allele, pk, impact=None,
+    def __init__(self, chrom, pos, ref_allele, alt_allele, pk, effect=None, impact=None,
                  gene=None, consequence=None):
         self.chrom = chrom
         self.pos = pos
@@ -91,4 +92,5 @@ class Variant(GraphObject):
         self.gene = gene
         self.pk = pk
         self.impact = impact
+        self.effect = effect
         self.consequence = consequence
