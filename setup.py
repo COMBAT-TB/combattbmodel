@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='combattbmodel',
-    version='0.0.5',
+    version='0.0.7',
     description='The COMBAT-TB model is a Chado-derived graph model',
     long_description=long_description,
     long_description_content_type="text/markdown",
