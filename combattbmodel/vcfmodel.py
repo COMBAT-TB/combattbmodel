@@ -38,13 +38,16 @@ class CallSet(GraphObject):
     name = Property()
     vset = Property()
     identifier = Property()
+    phenotype = Property()
+    antibiotic = Property()
 
     belongs_to_vset = RelatedFrom("VariantSet", "CALL_SET")
     has_variants = RelatedFrom("Variant", "HAS_VARIANT")
 
-    def __init__(self, name):
+    def __init__(self, name, phenotype, antibiotic):
         self.name = name
-        # self.vset = vset
+        self.phenotype = phenotype
+        self.antibiotic = antibiotic
 
 
 class Variant(GraphObject):

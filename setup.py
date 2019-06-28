@@ -1,11 +1,10 @@
 from setuptools import find_packages, setup
-
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='combattbmodel',
-    version='0.0.7',
+    version='0.0.8',
     description='The COMBAT-TB model is a Chado-derived graph model',
     long_description=long_description,
     long_description_content_type="text/markdown",

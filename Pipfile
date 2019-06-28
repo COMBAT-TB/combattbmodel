@@ -5,6 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 twine = "*"
+pydocstyle = "*"
+pytest = "*"
 
 [packages]
 atomicwrites = "==1.2.1"
